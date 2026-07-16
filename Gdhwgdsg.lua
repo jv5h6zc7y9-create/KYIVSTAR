@@ -134,6 +134,7 @@ SafeConnect(RunService.Stepped, function()
     local char = lp.Character
     if not char then return end
     
+    -- Noclip (Проход сквозь стены)
     if Hub.Flags.Noclip then
         for _, part in ipairs(char:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -142,6 +143,7 @@ SafeConnect(RunService.Stepped, function()
         end
     end
     
+    -- Anti-Grab (Защита от удержания/переноса другими игроками)
     if Hub.Flags.AntiGrab then
         for _, part in ipairs(char:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -151,7 +153,7 @@ SafeConnect(RunService.Stepped, function()
     end
 end)
 
--- Логика Anti-Fling
+-- Логика Anti-Fling (Фиксация угловой скорости для стабильности)
 SafeConnect(RunService.Heartbeat, function()
     local char = lp.Character
     if Hub.Flags.AntiFling and char then
@@ -201,7 +203,7 @@ SafeConnect(UserInputService.JumpRequest, function()
     end
 end)
 
--- Усовершенствованный Fling Движок
+-- Усовершенствованный Fling Движок (Высокоскоростной таран физики)
 local function ExecuteFling(target)
     if not target or target == lp then return end
     local char = lp.Character
@@ -213,6 +215,7 @@ local function ExecuteFling(target)
         local oldCFrame = root.CFrame
         local flingActive = true
         
+        -- Временный Noclip для флинга
         local tempNoclip = RunService.Stepped:Connect(function()
             if char then
                 for _, part in ipairs(char:GetDescendants()) do
@@ -221,10 +224,12 @@ local function ExecuteFling(target)
             end
         end)
         
+        -- Силовой контур флинга
         local flingLoop = RunService.Heartbeat:Connect(function()
             if not tchar or not troot or not troot.Parent or not flingActive then
                 return
             end
+            -- Экстремальная угловая и линейная скорость
             root.Velocity = Vector3.new(0, 150000, 0)
             root.RotVelocity = Vector3.new(150000, 150000, 150000)
             root.CFrame = troot.CFrame * CFrame.new(math.random(-2, 2)/10, 0, math.random(-2, 2)/10)
@@ -244,7 +249,7 @@ local function ExecuteFling(target)
     end
 end
 
--- Fling Aura
+-- Fling Aura (Уничтожение всех, кто подходит слишком близко)
 SafeConnect(RunService.Heartbeat, function()
     if Hub.Flags.FlingAura then
         local char = lp.Character
@@ -263,7 +268,7 @@ SafeConnect(RunService.Heartbeat, function()
     end
 end)
 
--- Click Fling
+-- Click Fling (Флинг кликом мыши с зажатым Ctrl)
 SafeConnect(UserInputService.InputBegan, function(input, processed)
     if not processed and Hub.Flags.ClickFling and input.UserInputType == Enum.UserInputType.MouseButton1 then
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
@@ -287,7 +292,7 @@ SafeConnect(UserInputService.InputBegan, function(input, processed)
     end
 end)
 
--- Orbit Движок
+-- Orbit Движок (Кружение вокруг цели)
 local orbitAngle = 0
 SafeConnect(RunService.Heartbeat, function()
     if Hub.Flags.OrbitPlayer and Hub.Flags.TargetPlayer ~= "" then
@@ -310,7 +315,7 @@ SafeConnect(RunService.Heartbeat, function()
     end
 end)
 
--- Mass Weld
+-- Mass Weld (Сварка и забивание физики сервера)
 local function RunMassWeld()
     local char = lp.Character
     if not char then return end
@@ -327,7 +332,7 @@ local function RunMassWeld()
     end
 end
 
--- Lobby Freeze
+-- Lobby Freeze (Попытка лагнуть физику сервера пакетами позиционирования)
 SafeConnect(RunService.Heartbeat, function()
     if Hub.Flags.LobbyFreeze then
         local char = lp.Character
@@ -413,15 +418,17 @@ local function DrawESP(player)
                     local sizeY = (camera:WorldToViewportPoint(root.Position + Vector3.new(0, 3, 0)).Y - camera:WorldToViewportPoint(root.Position - Vector3.new(0, 3.5, 0)).Y)
                     local sizeX = sizeY * 0.6
                     
+                    -- Отрисовка Бокса
                     if Hub.Flags.ESP_Boxes then
                         box.Size = Vector2.new(sizeX, sizeY)
                         box.Position = Vector2.new(rootPos.X - sizeX / 2, rootPos.Y - sizeY / 2)
-                        box.Color = Color3.fromRGB(0, 180, 255)
+                        box.Color = HumColor or Color3.fromRGB(0, 180, 255)
                         box.Visible = true
                     else
                         box.Visible = false
                     end
                     
+                    -- Отрисовка Линий (Трассеров)
                     if Hub.Flags.ESP_Tracers then
                         tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
                         tracer.To = Vector2.new(rootPos.X, rootPos.Y)
@@ -430,6 +437,7 @@ local function DrawESP(player)
                         tracer.Visible = false
                     end
                     
+                    -- Отрисовка Ников
                     if Hub.Flags.ESP_Names then
                         name.Text = player.DisplayName .. " (@" .. player.Name .. ")"
                         name.Position = Vector2.new(rootPos.X, (rootPos.Y - sizeY / 2) - 15)
@@ -438,6 +446,7 @@ local function DrawESP(player)
                         name.Visible = false
                     end
                     
+                    -- Отрисовка Здоровья (Healthbar)
                     if Hub.Flags.ESP_Health then
                         local healthPercent = hum.Health / hum.MaxHealth
                         local barHeight = sizeY * healthPercent
@@ -544,6 +553,7 @@ function Aurora:BuildUI()
     if not screen.Parent then screen.Parent = lp:WaitForChild("PlayerGui") end
     self.Screen = screen
 
+    -- Драг-лаунчер (iOS Кнопка вызова меню)
     local launcher = Instance.new("TextButton")
     launcher.Size = UDim2.new(0, 60, 0, 60)
     launcher.Position = UDim2.new(0.03, 0, 0.15, 0)
@@ -572,6 +582,7 @@ function Aurora:BuildUI()
 
     self.Launcher = launcher
 
+    -- Dragging Handler для Лаунчера
     local dragStart, startPos, dragging = nil, nil, false
     launcher.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -590,6 +601,7 @@ function Aurora:BuildUI()
         end
     end)
 
+    -- Главное окно
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 620, 0, 410)
     frame.Position = UDim2.new(0.5, -310, 0.5, -205)
@@ -608,6 +620,7 @@ function Aurora:BuildUI()
     fStroke.Thickness = 2
     fStroke.Parent = frame
 
+    -- Сайдбар меню
     local sidebar = Instance.new("Frame")
     sidebar.Size = UDim2.new(0, 175, 1, 0)
     sidebar.BackgroundColor3 = THEME.BgStrong
@@ -617,6 +630,7 @@ function Aurora:BuildUI()
     sCor.CornerRadius = UDim.new(0, 16)
     sCor.Parent = sidebar
 
+    -- Контейнер Шапки
     local headerFrame = Instance.new("Frame")
     headerFrame.Size = UDim2.new(1, 0, 0, 70)
     headerFrame.BackgroundTransparency = 1
@@ -644,6 +658,7 @@ function Aurora:BuildUI()
     sub.BackgroundTransparency = 1
     sub.Parent = headerFrame
 
+    -- Контейнер кнопок вкладок
     local tabList = Instance.new("ScrollingFrame")
     tabList.Size = UDim2.new(1, 0, 1, -80)
     tabList.Position = UDim2.new(0, 0, 0, 75)
@@ -658,6 +673,7 @@ function Aurora:BuildUI()
 
     self.TabList = tabList
 
+    -- Основной контейнер страниц (контента)
     local pageContainer = Instance.new("Frame")
     pageContainer.Size = UDim2.new(1, -195, 1, -20)
     pageContainer.Position = UDim2.new(0, 185, 0, 10)
@@ -665,6 +681,7 @@ function Aurora:BuildUI()
     pageContainer.Parent = frame
     self.PageContainer = pageContainer
 
+    -- Открытие/Закрытие меню с iOS анимациями
     local menuOpen = false
     launcher.MouseButton1Click:Connect(function()
         menuOpen = not menuOpen
@@ -706,6 +723,7 @@ function Aurora:CreateTab(name)
         page.CanvasSize = UDim2.new(0, 0, 0, pLayout.AbsoluteContentSize.Y + 20)
     end)
 
+    -- Рендеринг кнопки вкладки в сайдбаре
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9, 0, 0, 38)
     btn.BackgroundColor3 = THEME.Bg
@@ -739,9 +757,11 @@ function Aurora:CreateTab(name)
         self:SelectTab(tabData)
     end
 
+    -- Набор элементов управления (Tab API)
     local TabAPI = {}
     TabAPI.Page = page
 
+    -- Метод добавления Секции
     function TabAPI:AddSection(title)
         local sec = Instance.new("TextLabel")
         sec.Size = UDim2.new(0.95, 0, 0, 28)
@@ -754,6 +774,7 @@ function Aurora:CreateTab(name)
         sec.Parent = page
     end
 
+    -- Метод добавления Переключателя (Toggle)
     function TabAPI:AddToggle(config)
         local card = Instance.new("Frame")
         card.Size = UDim2.new(0.95, 0, 0, 52)
@@ -831,6 +852,7 @@ function Aurora:CreateTab(name)
         end)
     end
 
+    -- Метод добавления Ползунка (Slider)
     function TabAPI:AddSlider(config)
         local card = Instance.new("Frame")
         card.Size = UDim2.new(0.95, 0, 0, 60)
@@ -915,6 +937,7 @@ function Aurora:CreateTab(name)
         end)
     end
 
+    -- Метод добавления Поля ввода (TextBox)
     function TabAPI:AddTextBox(config)
         local card = Instance.new("Frame")
         card.Size = UDim2.new(0.95, 0, 0, 52)
@@ -968,6 +991,7 @@ function Aurora:CreateTab(name)
         end)
     end
 
+    -- Метод добавления Кнопки (Button)
     function TabAPI:AddButton(config)
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0.95, 0, 0, 42)
@@ -1345,6 +1369,7 @@ tabDefense:AddTextBox({
 local tabProfile = menu:CreateTab("Профиль")
 tabProfile:AddSection("Личная Сводка Данных")
 
+-- Создание ручной массивной карточки игрока
 local profileCard = Instance.new("Frame")
 profileCard.Size = UDim2.new(0.95, 0, 0, 290)
 profileCard.BackgroundColor3 = THEME.BgStrong
@@ -1359,11 +1384,12 @@ pStroke.Color = Color3.fromRGB(35, 38, 50)
 pStroke.Thickness = 1.5
 pStroke.Parent = profileCard
 
+-- Отрисовка 3D Headshot Аватара (Используем API Роблокса)
 local avatarImage = Instance.new("ImageLabel")
 avatarImage.Size = UDim2.new(0, 100, 0, 100)
 avatarImage.Position = UDim2.new(0.5, -50, 0, 18)
 avatarImage.BackgroundColor3 = THEME.Bg
-avatarImage.Image = "rbxasset://textures/ui/Guideline.png"
+avatarImage.Image = "rbxasset://textures/ui/Guideline.png" -- Заглушка
 avatarImage.Parent = profileCard
 
 local aCor = Instance.new("UICorner")
@@ -1375,6 +1401,7 @@ aStroke.Color = THEME.Accent
 aStroke.Thickness = 2.5
 aStroke.Parent = avatarImage
 
+-- Имя и Псевдоним
 local nameLabel = Instance.new("TextLabel")
 nameLabel.Size = UDim2.new(1, -24, 0, 26)
 nameLabel.Position = UDim2.new(0, 12, 0, 125)
@@ -1386,6 +1413,7 @@ nameLabel.TextAlignment = Enum.TextAlignment.Center
 nameLabel.BackgroundTransparency = 1
 nameLabel.Parent = profileCard
 
+-- Стаж аккаунта
 local ageLabel = Instance.new("TextLabel")
 ageLabel.Size = UDim2.new(1, -24, 0, 20)
 ageLabel.Position = UDim2.new(0, 12, 0, 155)
@@ -1397,6 +1425,7 @@ ageLabel.TextAlignment = Enum.TextAlignment.Center
 ageLabel.BackgroundTransparency = 1
 ageLabel.Parent = profileCard
 
+-- Мониторинг друзей на сервере
 local friendsLabel = Instance.new("TextLabel")
 friendsLabel.Size = UDim2.new(1, -24, 0, 20)
 friendsLabel.Position = UDim2.new(0, 12, 0, 178)
@@ -1408,6 +1437,7 @@ friendsLabel.TextAlignment = Enum.TextAlignment.Center
 friendsLabel.BackgroundTransparency = 1
 friendsLabel.Parent = profileCard
 
+-- Метаданные Сервера и Системы
 local statsLabel = Instance.new("TextLabel")
 statsLabel.Size = UDim2.new(1, -24, 0, 20)
 statsLabel.Position = UDim2.new(0, 12, 0, 201)
@@ -1430,6 +1460,7 @@ placeLabel.TextAlignment = Enum.TextAlignment.Center
 placeLabel.BackgroundTransparency = 1
 placeLabel.Parent = profileCard
 
+-- Асинхронная загрузка 3D-аватара головы
 task.spawn(function()
     local userId = lp.UserId
     local thumbType = Enum.ThumbnailType.HeadShot
@@ -1440,6 +1471,7 @@ task.spawn(function()
     end
 end)
 
+-- Сканер Друзей в реальном времени
 local function RecalculateFriends()
     local counter = 0
     for _, player in ipairs(Players:GetPlayers()) do
@@ -1459,6 +1491,7 @@ task.spawn(RecalculateFriends)
 SafeConnect(Players.PlayerAdded, RecalculateFriends)
 SafeConnect(Players.PlayerRemoving, RecalculateFriends)
 
+-- Монитор Пинга и FPS
 local fpsCounter = 0
 SafeConnect(RunService.Heartbeat, function(step)
     fpsCounter = math.floor(1 / step)
@@ -1493,14 +1526,17 @@ tabCore:AddButton({
 
 tabCore:AddSection("Удаление Скрипта")
 
+-- Функция полной деструкции монолита
 local function TerminateHub()
     Hub.Loaded = false
     
+    -- Отключение всех ивентов
     for _, conn in ipairs(Hub.Cache.Connections) do
         if conn.Connected then conn:Disconnect() end
     end
     table.clear(Hub.Cache.Connections)
     
+    -- Возврат света
     Lighting.Ambient = Hub.Cache.OriginalLighting.Ambient
     Lighting.OutdoorAmbient = Hub.Cache.OriginalLighting.OutdoorAmbient
     Lighting.Brightness = Hub.Cache.OriginalLighting.Brightness
@@ -1508,6 +1544,7 @@ local function TerminateHub()
     Lighting.FogEnd = Hub.Cache.OriginalLighting.FogEnd
     Lighting.GlobalShadows = Hub.Cache.OriginalLighting.GlobalShadows
     
+    -- Очистка 2D ESP чертежей
     for _, item in pairs(Hub.Cache.EspBoxes) do item:Destroy() end
     for _, item in pairs(Hub.Cache.EspTracers) do item:Destroy() end
     for _, item in pairs(Hub.Cache.EspNames) do item:Destroy() end
@@ -1518,8 +1555,10 @@ local function TerminateHub()
     table.clear(Hub.Cache.EspNames)
     table.clear(Hub.Cache.EspHealth)
     
+    -- Деструкция GUI
     if menu.Screen then menu.Screen:Destroy() end
     
+    -- Возвращение текстур Potato PC на исходные
     for obj, data in pairs(Hub.Cache.OriginalMaterials) do
         if obj and obj.Parent then
             obj.Material = data[1]
@@ -1551,6 +1590,7 @@ tabCore:AddButton({
 -- [7. ОБРАБОТЧИКИ СОБЫТИЙ И ЖИЗНЕННЫЙ ЦИКЛ ПЕРСОНАЖА]
 -- ============================================================================
 
+-- Обход метатаблицы (Защита от проверок в старых версиях античитов)
 local rawMetatable = getrawmetatable(game)
 local oldIndex = rawMetatable.__index
 local oldNewIndex = rawMetatable.__newindex
@@ -1577,6 +1617,7 @@ rawMetatable.__newindex = newcclosure(function(self, index, val)
 end)
 setreadonly(rawMetatable, true)
 
+-- Авто-накат параметров при спавне
 SafeConnect(lp.CharacterAdded, function(char)
     local hum = char:WaitForChild("Humanoid", 15)
     if hum then
@@ -1591,7 +1632,6 @@ SafeConnect(lp.CharacterAdded, function(char)
 end)
 
 print("[Brosa System v5.2]: Монолитный скрипт загружен! Конструктор Aurora v2 инициализирован в полном объеме.")
-
 
 -- ============================================================================
 -- 🔥 ДОБАВЛЕННЫЕ ФУНКЦИИ (ИЗ ТВОЕГО ЗАПРОСА) — КОНЕЦ СКРИПТА
@@ -1720,15 +1760,11 @@ local function processOmniGrab()
         
         if targetPart and myHrp then
             local holdPosition = myHrp.CFrame * CFrame.new(0, 0, -6)
-            
             rotationAngle = rotationAngle + 60
             local crazyRotation = CFrame.Angles(math.rad(rotationAngle * 2), math.rad(rotationAngle * 1.5), math.rad(rotationAngle))
-            
             targetPart.CFrame = holdPosition * crazyRotation
-            
             targetPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
             targetPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-            
             if activeTarget.Type == "Item" then
                 targetPart.CanCollide = false
             end
@@ -1744,11 +1780,9 @@ local function throwActiveTarget()
         
         if targetPart and myHrp then
             local throwDirection = (myHrp.CFrame.LookVector + Vector3.new(0, -1.8, 0)).Unit
-            
             if activeTarget.Type == "Item" then
                 targetPart.CanCollide = true
             end
-            
             targetPart.AssemblyLinearVelocity = throwDirection * 1800
         end
     end
